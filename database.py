@@ -6,6 +6,7 @@ class Database:
         self.cursor = self.conn.cursor()
         self.create_tools_table()
         self.create_employee_table()
+        self.create_table_checkouts()
         
 
     def create_tools_table(self):
@@ -33,7 +34,7 @@ class Database:
     
     def fetch_available(self):
         self.cursor.execute('''
-                            SELECT * 
+                            SELECT id,tool,serial_number
                             FROM tools
                             WHERE available = 1;
                             ''')
@@ -41,19 +42,16 @@ class Database:
     
     def fetch_not_available(self):
         self.cursor.execute('''
-                            SELECT * 
+                            SELECT id,tool,serial_number
                             FROM tools
                             WHERE available = 0;
                             ''')
         return self.cursor.fetchall()
 
-    def update_status(self, id, available):
-        self.cursor.execute('''
-                            UPDATE tools 
-                            SET available = ? 
-                            WHERE id = ?;
-                            ''', (available, id))
-        self.conn.commit()
+    def update_status(self, available, id):
+        query = "UPDATE tools SET available = ? WHERE id = ?"
+        self.cursor.execute(query, (available, id))
+
 
     def delete_tool(self, id):
         self.cursor.execute('''
@@ -87,3 +85,19 @@ class Database:
 
     def close(self):
         self.conn.close()
+
+    def create_table_checkouts(self):
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS checkouts (
+                                id INTEGER PRIMARY KEY,
+                                tool TEXT,
+                                serial_number INTEGER,
+                                name TEXT,
+                                department TEXT,
+                                shift INTEGER)''')
+        self.conn.commit()
+
+    def fetch_checkouts(self):
+        self.cursor.execute('''SELECT *
+                                FROM checkouts''')
+        return self.cursor.fetchall()
+                            
